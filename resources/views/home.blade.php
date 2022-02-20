@@ -9,12 +9,16 @@
 
                 <div class="card-body">
                     @if (session('status'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
-                        </div>
+                    <div class="alert alert-success" role="alert">
+                        {{ session('status') }}
+                    </div>
                     @endif
 
-                    {{ __('You are logged in!') }}
+                    <div class="text-center">
+                        {{ __('You are logged in!') }}
+                        <br>
+                        <a href="{{route('chats')}}" class="btn btn-success">Chat now</a>
+                    </div>
                 </div>
             </div>
         </div>
