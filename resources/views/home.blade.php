@@ -17,6 +17,7 @@
                     <div class="text-center">
                         {{ __('You are logged in!') }}
                         <br>
+                        <br>
                         <a href="{{route('chats')}}" class="btn btn-success">Chat now</a>
                     </div>
                 </div>

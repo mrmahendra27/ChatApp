@@ -17,7 +17,7 @@ return [
 
         'domain' => env('LARAVEL_WEBSOCKETS_DOMAIN'),
 
-        'path' => env('LARAVEL_WEBSOCKETS_PATH', 'laravel-websockets'),
+        'path' => env('LARAVEL_WEBSOCKETS_PATH', 'chat-websockets'),
 
         'middleware' => [
             'web',
