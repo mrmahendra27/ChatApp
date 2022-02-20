@@ -22590,23 +22590,38 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     var messages = (0,vue__WEBPACK_IMPORTED_MODULE_1__.ref)([]);
     var newMessage = (0,vue__WEBPACK_IMPORTED_MODULE_1__.ref)("");
     var users = (0,vue__WEBPACK_IMPORTED_MODULE_1__.ref)([]);
+    var hasScrolledToBottom = (0,vue__WEBPACK_IMPORTED_MODULE_1__.ref)("");
+    var activeUser = (0,vue__WEBPACK_IMPORTED_MODULE_1__.ref)(false);
+    var typingTimer = false;
     (0,vue__WEBPACK_IMPORTED_MODULE_1__.onMounted)(function () {
       fetchMessages();
     });
-    window.Echo.join("channel-chat").here(function (user) {
+    (0,vue__WEBPACK_IMPORTED_MODULE_1__.onUpdated)(function () {
+      scrollBottom();
+    });
+    Echo.join("channel-chat").here(function (user) {
       users.value = user;
     }).joining(function (user) {
       users.value.push(user);
     }).leaving(function (user) {
-      users.value.filter(function (u) {
+      users.value = users.value.filter(function (u) {
         return u.id != user.id;
       });
     }).listen(".SendMessage", function (e) {
-      console.log(e);
       messages.value.push({
         user: e.user,
         message: e.message.message
       });
+    }).listenForWhisper("typing", function (res) {
+      activeUser.value = res;
+
+      if (typingTimer) {
+        clearTimeout(typingTimer);
+      }
+
+      var typingTimer = setTimeout(function () {
+        activeUser.value = false;
+      }, 1000);
     });
 
     var fetchMessages = /*#__PURE__*/function () {
@@ -22668,11 +22683,25 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       };
     }();
 
+    var scrollBottom = function scrollBottom() {
+      if (messages.value.length > 1) {
+        var el = hasScrolledToBottom.value;
+        el.scrollTop = el.scrollHeight;
+      }
+    };
+
+    var keyTypingEvent = function keyTypingEvent() {
+      Echo.join("channel-chat").whisper("typing", props.user);
+    };
+
     return {
       messages: messages,
       users: users,
       newMessage: newMessage,
-      sendMessage: sendMessage
+      sendMessage: sendMessage,
+      hasScrolledToBottom: hasScrolledToBottom,
+      keyTypingEvent: keyTypingEvent,
+      activeUser: activeUser
     };
   }
 });
@@ -22716,29 +22745,33 @@ var _hoisted_6 = {
   style: {
     "height": "300px",
     "overflow-y": "scroll"
-  }
+  },
+  ref: "hasScrolledToBottom"
 };
-
-var _hoisted_7 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
-  "class": "text-muted"
-}, " user is typing...", -1
-/* HOISTED */
-);
-
+var _hoisted_7 = {
+  "class": "primary-font"
+};
 var _hoisted_8 = {
-  "class": "col-4"
+  "class": "primary-font"
 };
 var _hoisted_9 = {
+  key: 0,
+  "class": "text-muted"
+};
+var _hoisted_10 = {
+  "class": "col-4"
+};
+var _hoisted_11 = {
   "class": "card card-default"
 };
 
-var _hoisted_10 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+var _hoisted_12 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
   "class": "card-header"
 }, "Active Users(online)", -1
 /* HOISTED */
 );
 
-var _hoisted_11 = {
+var _hoisted_13 = {
   "class": "card-body"
 };
 function render(_ctx, _cache, $props, $setup, $data, $options) {
@@ -22746,14 +22779,26 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("li", {
       "class": "p-2",
       key: index
-    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(message.user.name), 1
+    }, [$props.user.id != message.user.id ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", {
+      "class": "message message-receive",
+      key: message.id
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", _hoisted_7, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(message.user.name) + ": ", 1
     /* TEXT */
     ), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createTextVNode)(" " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(message.message), 1
     /* TEXT */
-    )]);
+    )])])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", {
+      "class": "message message-send",
+      key: index
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", _hoisted_8, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(message.user.name) + ": ", 1
+    /* TEXT */
+    ), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createTextVNode)(" " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(message.message), 1
+    /* TEXT */
+    )])]))]);
   }), 128
   /* KEYED_FRAGMENT */
-  ))])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
+  ))], 512
+  /* NEED_PATCH */
+  )]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
     type: "text",
     "class": "form-control",
     placeholder: "Enter your message",
@@ -22763,10 +22808,15 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     onKeyup: _cache[1] || (_cache[1] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withKeys)(function () {
       return $setup.sendMessage && $setup.sendMessage.apply($setup, arguments);
-    }, ["enter"]))
+    }, ["enter"])),
+    onKeydown: _cache[2] || (_cache[2] = function () {
+      return $setup.keyTypingEvent && $setup.keyTypingEvent.apply($setup, arguments);
+    })
   }, null, 544
   /* HYDRATE_EVENTS, NEED_PATCH */
-  ), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $setup.newMessage]])]), _hoisted_7]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_8, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_9, [_hoisted_10, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_11, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("ul", null, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($setup.users, function (user, index) {
+  ), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $setup.newMessage]])]), $setup.activeUser ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_9, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($setup.activeUser.name) + " is typing...", 1
+  /* TEXT */
+  )) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_10, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_11, [_hoisted_12, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_13, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("ul", null, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($setup.users, function (user, index) {
     return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("li", {
       "class": "py-2",
       key: index
